@@ -4,6 +4,7 @@ import json
 from time import perf_counter
 
 import numpy as np
+from provenance import write_validation
 from baseline import Config, ROOT, gradient, make_problem
 from feature_correlation import OUT, RHOS, correlate, population
 from robustness import trial_config
@@ -52,7 +53,7 @@ def main():
             np.testing.assert_equal(target[key], "unobserved" if value is None else str(value))
         checks.append(dict(rho=rho,t1=t1,t2=t2,steps=step,max_abs_loss_error=peak_error))
     report = dict(isotropic_trials=len(baseline),literal_trial=1,checks=checks,seconds=perf_counter()-start)
-    (OUT/"verification.json").write_text(json.dumps(report,indent=2)+"\n")
+    write_validation(OUT/"verification.json", report)
     print(report)
 
 

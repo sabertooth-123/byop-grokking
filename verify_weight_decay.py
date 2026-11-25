@@ -6,6 +6,7 @@ from time import perf_counter
 
 import numpy as np
 
+from provenance import write_validation
 from baseline import Config, ROOT, make_problem
 from setup_reference import REFERENCE, REVISION, verify_checkout
 from weight_decay import trial_configs
@@ -76,7 +77,7 @@ def main():
     report = dict(reference_commit=REVISION, bounds_checked=len(rows), max_abs_upper_error=upper_error,
                   max_abs_lower_error=lower_error, crossing_neighbors_checked=4*len(rows),
                   smallest_threshold_margin=min(margins), literal_reference_trial=literal, seconds=perf_counter()-start)
-    (out / "verification.json").write_text(json.dumps(report, indent=2) + "\n")
+    write_validation(out/"verification.json", report)
     print(json.dumps(report, indent=2))
 
 

@@ -5,6 +5,7 @@ from time import perf_counter
 
 import numpy as np
 
+from provenance import write_validation
 from baseline import Config, gradient, make_problem, population_mse
 from robustness import EPSILONS, MISSING, OUT, TEST_OFFSETS, finite_set, trial_config
 
@@ -56,7 +57,7 @@ def verify():
     np.testing.assert_equal(b["100"]["t2_difference"], expected_delta)
     receipt = dict(trial=1, literal_updates=step, threshold_train=train_times, threshold_test=finite_times,
                    population_t2=population_time, test_100_t2=small_time, seconds=perf_counter()-start)
-    (OUT/"verification.json").write_text(json.dumps(receipt, indent=2)+"\n")
+    write_validation(OUT/"verification.json", receipt)
     print(json.dumps(receipt, indent=2))
 
 

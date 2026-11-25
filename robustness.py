@@ -8,6 +8,7 @@ from time import perf_counter
 
 import numpy as np
 
+from provenance import write_run
 from baseline import Config, ROOT, make_problem
 from weight_decay import crossings, plt, save_csv
 
@@ -163,7 +164,9 @@ def main():
                 openblas_num_threads=os.getenv("OPENBLAS_NUM_THREADS"),
                 sha256={f: hashlib.sha256((ROOT/f).read_bytes()).hexdigest() for f in files},
                 threshold_seconds=a_time, population_seconds=b_time, total_seconds=perf_counter()-start)
-    (OUT / "run.json").write_text(json.dumps(meta, indent=2)+"\n")
+    write_run(OUT/"run.json", meta,
+              "Advance teacher, train and student seeds by 1000; independent finite test seeds use recorded offsets.",
+              "Independent Gaussian rows with covariance I/m; paired finite splits and exact isotropic population scoring.")
     print(json.dumps(meta))
 
 

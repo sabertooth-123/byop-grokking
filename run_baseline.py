@@ -9,6 +9,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+from provenance import write_run
 from baseline import Config, ROOT, fit, make_problem
 
 
@@ -28,7 +29,9 @@ def main():
                    python=platform.python_version(), platform=platform.platform(),
                    numpy=np.__version__, matplotlib=matplotlib.__version__,
                    openblas_num_threads=os.getenv("OPENBLAS_NUM_THREADS"))
-    (out / "run.json").write_text(json.dumps(summary, indent=2) + "\n")
+    write_run(out/"run.json", summary,
+              "Separate teacher, train, test and student streams use the config seeds.",
+              "Independent Gaussian rows with covariance I/m; noiseless unit teacher; fixed Gaussian test split.")
     fig, ax = plt.subplots(figsize=(8, 4.8), layout="constrained")
     ax.plot(steps, losses[:, 0], label="Training", color="#166087")
     ax.plot(steps, losses[:, 1], label="Test", color="#ad492a")

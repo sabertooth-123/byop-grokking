@@ -9,6 +9,7 @@ from time import perf_counter
 
 import numpy as np
 
+from provenance import write_run
 from baseline import Config, ROOT, make_problem
 from feature_correlation import (CHECKPOINTS, MISSING, RESAMPLES, RHOS, TRIALS, Trajectory,
                                  correlate, first_crossings)
@@ -145,12 +146,14 @@ def main():
     for file,data in [("trials.csv",rows),("checkpoints.csv",curves),("summary.csv",stats)]:
         save_csv(OUT/file,data)
     plots(stats,curves)
-    meta = dict(reference_commit=PARENT_COMMIT,config=asdict(base),rhos=RHOS,random_trials=TRIALS,
+    meta = dict(parent_experiment_commit=PARENT_COMMIT,config=asdict(base),rhos=RHOS,random_trials=TRIALS,
                 alignment_trials=ALIGNMENT_TRIALS,seed_stride=1000,bootstrap_seed=SEED,resamples=RESAMPLES,
                 python=platform.python_version(),numpy=np.__version__,openblas_threads=os.getenv("OPENBLAS_NUM_THREADS"),
                 source_sha256=hashlib.sha256((ROOT/"geometry_diagnostic.py").read_bytes()).hexdigest(),
                 seconds=perf_counter()-start)
-    (OUT/"run.json").write_text(json.dumps(meta,indent=2)+"\n")
+    write_run(OUT/"run.json", meta,
+              "Milestone 4 paired seeds, stride 1000; first alignment_trials seeds for both unit teacher controls.",
+              "Replay equicorrelated Gaussian designs; score the same iterates under training and isotropic covariances.")
     print(meta)
 
 

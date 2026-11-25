@@ -1,5 +1,23 @@
 # Grokking in ridge regression
 
+This project reproduces the ridge-regression experiments in Section 5.1 of *To Grok Grokking: Provable Grokking in Ridge Regression* and tests how the choice of evaluation distribution affects the measured generalization delay. Each experiment records the first gradient updates at which training and evaluation MSE reach a specified threshold. [Paper](https://arxiv.org/abs/2601.19791) · [Authors' code](https://github.com/raymondmyxu/to-grok-grokking)
+
+### Results navigation
+
+| Scope | Experiment | Figures and results |
+| --- | --- | --- |
+| Paper reproduction | Milestone 1 · Default ridge trajectory | [Training and test loss](results/baseline.png) |
+| Paper reproduction | Milestones 2A–2B · Figure 2 | [Weight decay](results/weight_decay/figure2a.png) · [Sample size](results/sample_size/figure2b.png) · [Dimension](results/feature_dimension/figure2c.png) · [Initialization](results/initialization/figure2d.png) |
+| Original extension | Milestone 3 · Robustness | [Threshold sensitivity](results/robustness/threshold_sensitivity.png) · [Finite and population error](results/robustness/finite_vs_population.png) |
+| Original extension | Milestone 4 · Correlated features | [Delay](results/feature_correlation/delay.png) · [Loss histories](results/feature_correlation/losses.png) |
+| Original extension | Milestone 4B · Evaluation geometry and teacher alignment | [Two crossing metrics](results/geometry_diagnostic/crossings.png) · [Normalized trajectories](results/geometry_diagnostic/normalized_losses.png) · [Diagnostic report](results/geometry_diagnostic/REPORT.md) |
+
+### Checking the archive
+
+Use a full Git checkout and the pinned dependencies in the Milestone 1 setup below. From the project root, set `OPENBLAS_NUM_THREADS=1`, run `python setup_reference.py`, then `python -m unittest discover -v` and `python validate_artifacts.py`. The Python 3.12 CI workflow runs the same checks. The archive audit compares all files under `results/` with reviewed project commit `7e9a620`, checks receipt/configuration consistency, historical source digests where available, and trial records. It reads saved results without training. The tests perform numerical checks, including repeated baseline GD and selected diagnostic replays. Run the experiment commands in the sections below in a separate checkout when you want to regenerate outputs; those commands write to the corresponding results directory.
+
+**Provenance.** Historical run files record the fields available at execution. Some early runs lack a project HEAD or a complete source hash list. The reviewed archive commit identifies the saved artifacts; it cannot establish an unrecorded execution SHA. In the historical 4B `run.json`, `reference_commit` identifies **our prior Milestone 4 commit** `0620b2b`. The authors' reference checkout is `raymondmyxu/to-grok-grokking@4b01ed1d878a37a36b7872e6cbd2beabb8b23cce`. Future 4B runs use the field `parent_experiment_commit` for our parent. New runs record project HEAD, local source state and hashes, dependency versions, dataset and seed conventions, and validation status. A successful verifier writes its own execution metadata and links its receipt from the new run file. Historical verification evidence lives in each panel's `verification.json` or the baseline's `comparison.json`.
+
 ## Milestone 1 · Baseline
 
 With the Section 5.1 defaults and the official first-trial seeds, training MSE reached 0.01 at update **232**, when test MSE was still **0.85045**. Test MSE first reached 0.01 at update **22,769**, a delay of **22,537** updates. These numbers come from a single deterministic run. [Loss curves](results/baseline.png) · [Per-update data](results/losses.csv)
@@ -230,3 +248,13 @@ python verify_feature_correlation.py
 ```
 
 The paired observations support an effect of positive equicorrelation on the measured delay for this threshold, scale, ridge penalty and covariance family. They do not establish a universal direction for other spectra, thresholds or teacher distributions.
+
+## Milestone 4B · Evaluation geometry and teacher alignment
+
+Does the earlier population crossing at high feature correlation indicate faster recovery of the teacher weights? We replayed the 20 Milestone 4 trials at all four correlations. At every discrete GD update we scored the same weight error d = w − θ* in two ways. The first score is dᵀΣρd, the prediction MSE under that trial's training distribution. The second is ‖d‖²/m, prediction MSE under one isotropic distribution shared by every condition. Both crossing times use the same absolute threshold of 0.01. For trajectory comparisons, each trial's loss is also divided by its own initial loss before averaging. [Crossings](results/geometry_diagnostic/crossings.png) · [Normalized losses](results/geometry_diagnostic/normalized_losses.png) · [Checkpoint data](results/geometry_diagnostic/checkpoints.csv)
+
+At ρ = 0.85, mean training crossing moved **597.7 updates later** than at ρ = 0. The distribution-specific population crossing moved **9,856.1 updates earlier**, while the common isotropic crossing moved **0.95 updates later** (paired 95% interval [−2.35, +4.50]). The original mean delay fell by **10,453.8** updates; the common-metric delay fell by **596.75**. Switching the evaluation metric on the same trajectories accounts for (10,453.8 − 596.75) / 10,453.8 ≈ **94.3%** of the original reduction. The smaller residual reduction follows mainly from the later training crossing. At update 5,000, normalized isotropic losses were 0.33227 and 0.33231 at the two endpoints. [Paired trial records](results/geometry_diagnostic/trials.csv) · [Summary statistics](results/geometry_diagnostic/summary.csv)
+
+The first six trial seeds also compare two unit-norm teachers on identical inputs and student initializations. One teacher points along the all-ones axis. The other is the original teacher projected onto the orthogonal complement and renormalized. At ρ = 0.85, the parallel teacher reached the common threshold **449.2 updates earlier** on average (pointwise paired bootstrap 95% interval [403.0, 496.7] earlier). The zero-correlation interval included zero. Orientation can matter for these extreme teachers even though the 20 randomly oriented teachers showed little change in common-metric recovery time. The contrasts apply to this synthetic Gaussian family, threshold, ridge penalty and initialization. Six controlled seeds offer limited precision, and equal teacher norm permits different target variances under correlated inputs. [Detailed report and verification](results/geometry_diagnostic/REPORT.md)
+
+After preparing the checked-in Milestone 4 results, use the same Python environment to run `python geometry_diagnostic.py` followed by `python verify_geometry_diagnostic.py`. The verifier compares checkpoint losses and integer crossing counts against literal GD. Run `python -m unittest -v test_geometry_diagnostic` for the lightweight regression checks.

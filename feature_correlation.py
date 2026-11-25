@@ -8,6 +8,7 @@ from time import perf_counter
 
 import numpy as np
 
+from provenance import write_run
 from baseline import Config, ROOT, make_problem
 from robustness import MISSING, RESAMPLES, TRIALS, trial_config
 from weight_decay import plt, save_csv
@@ -178,7 +179,9 @@ def main():
                 seed_stride=1000,python=platform.python_version(),numpy=np.__version__,platform=platform.platform(),
                 openblas_threads=os.getenv("OPENBLAS_NUM_THREADS"),seconds=perf_counter()-start,
                 source_sha256=hashlib.sha256((ROOT/"feature_correlation.py").read_bytes()).hexdigest())
-    (OUT/"run.json").write_text(json.dumps(meta,indent=2)+"\n")
+    write_run(OUT/"run.json", meta,
+              "Advance teacher, training and student seeds by 1000; share draws within trial across correlations.",
+              "Transform shared N(0,I/m) draws by the equicorrelation square root; score the matching covariance.")
     print(meta)
 
 

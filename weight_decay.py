@@ -13,6 +13,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+from provenance import write_run
 from baseline import Config, ROOT, fit, make_problem
 from setup_reference import REVISION
 
@@ -170,7 +171,9 @@ def main():
                     python=platform.python_version(), numpy=np.__version__, matplotlib=matplotlib.__version__,
                     platform=platform.platform(), processor=platform.processor(),
                     openblas_num_threads=os.getenv("OPENBLAS_NUM_THREADS"), wall_seconds=perf_counter()-start)
-    (out / "run.json").write_text(json.dumps(metadata, indent=2) + "\n")
+    write_run(out/"run.json", metadata,
+              "Teacher, train and test seeds advance by 1000 per trial across settings; fixed student seed.",
+              "Independent Gaussian rows with covariance I/m; noiseless unit teacher; fixed Gaussian test split.")
     print(f"Elapsed: {metadata['wall_seconds']:.2f} s")
 
 

@@ -4,6 +4,7 @@ import json
 import sys
 
 import numpy as np
+from provenance import write_validation
 from baseline import Config, ROOT, make_problem
 from setup_reference import REFERENCE, REVISION, verify_checkout
 
@@ -58,7 +59,7 @@ def main():
                   observations=len(curves), reference_t1=crossings[0], reference_t2=crossings[1],
                   max_abs_train_mse_difference=diffs[0], max_abs_test_mse_difference=diffs[1],
                   max_abs_final_weight_difference=weight_error, rtol=1e-12, atol=1e-14)
-    (out / "comparison.json").write_text(json.dumps(report, indent=2) + "\n")
+    write_validation(out/"comparison.json", report)
     print(json.dumps(report))
 
 

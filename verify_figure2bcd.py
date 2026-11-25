@@ -8,6 +8,7 @@ from time import perf_counter
 
 import numpy as np
 
+from provenance import write_validation
 from baseline import Config, ROOT, make_problem
 from figure2bcd import GRIDS, UNOBSERVED, configs, reference_module
 from setup_reference import REVISION
@@ -69,7 +70,7 @@ def verify(panel):
                   minimum_observed_margin=min(margins, default=None),
                   max_abs_errors=dict(zip(names, np.max(errors, axis=0))),
                   literal_checks=literal_checks, seconds=perf_counter()-start)
-    (out / "verification.json").write_text(json.dumps(report, indent=2)+"\n")
+    write_validation(out/"verification.json", report)
     print(json.dumps(report, indent=2))
 
 

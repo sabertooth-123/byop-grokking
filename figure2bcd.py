@@ -12,6 +12,7 @@ from time import perf_counter
 
 import numpy as np
 
+from provenance import write_run
 from baseline import Config, ROOT, make_problem
 from setup_reference import REFERENCE, REVISION, verify_checkout
 from weight_decay import PREFIX, TRIALS, crossings, plt, save_csv
@@ -145,7 +146,9 @@ def run(panel):
     save_csv(out / "summary.csv", stats)
     plot(panel, stats, out)
     metadata["wall_seconds"] = perf_counter()-start
-    (out / "run.json").write_text(json.dumps(metadata, indent=2)+"\n")
+    write_run(out/"run.json", metadata,
+              "Restart seed progression per panel; add 1000 per trial to teacher, train and test seeds; fixed student seed.",
+              "Independent Gaussian rows with covariance I/m; noiseless unit teacher; override the configured panel field.")
     print(f"{panel} finished in {metadata['wall_seconds']:.2f} seconds")
 
 

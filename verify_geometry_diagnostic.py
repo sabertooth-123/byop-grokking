@@ -4,6 +4,7 @@ from time import perf_counter
 
 import numpy as np
 
+from provenance import write_validation
 from baseline import Config, gradient, make_problem, population_mse
 from feature_correlation import correlate, population
 from geometry_diagnostic import OUT, read_rows, teachers
@@ -52,7 +53,7 @@ def main():
             np.testing.assert_equal(str(v),saved[k])
         checks.append(dict(trial=trial,rho=rho,teacher=kind,**first,steps=step,max_abs_loss_error=max_error))
     report = dict(checks=checks,seconds=perf_counter()-start)
-    (OUT/"verification.json").write_text(json.dumps(report,indent=2)+"\n")
+    write_validation(OUT/"verification.json", report)
     print(report)
 
 
