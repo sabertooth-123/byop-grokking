@@ -1,0 +1,48 @@
+{
+  "base_config": {
+    "n_train": 100,
+    "n_test": 2000,
+    "dimension": 1000,
+    "teacher_seed": 0,
+    "train_seed": 1,
+    "test_seed": 2,
+    "student_seed": 100,
+    "student_variance": 1.0,
+    "step_size": 1.0,
+    "weight_decay": 0.0001,
+    "epsilon": 0.01,
+    "max_steps": 3000000
+  },
+  "trials": 20,
+  "epsilons": [
+    0.005,
+    0.01,
+    0.02,
+    0.05
+  ],
+  "test_seed_offsets": {
+    "100": 3,
+    "500": 4,
+    "2000": 2,
+    "10000": 5
+  },
+  "seed_stride": 1000,
+  "bootstrap_seed": 3102026,
+  "bootstrap_resamples": 20000,
+  "sd_ddof": 1,
+  "confidence_level": 0.95,
+  "python": "3.12.3",
+  "numpy": "2.4.4",
+  "matplotlib": "3.10.8",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "openblas_num_threads": "1",
+  "sha256": {
+    "robustness.py": "c9a219f6cecf9166e1befcb4ea83cbe71a59a541a7e12f71531f0114c85c5f9c",
+    "weight_decay.py": "aeba90613156838601177f6c28c4f927d81708f55bdfb6355cdffb3190f35627",
+    "baseline.py": "cd7cd5ea604b124e571992d81a9b03078cb1f50e4ab1702b9d562aa2e36647be",
+    "baseline.json": "20ce1221b2764497c2e340b026e079a1e2a8f7d16c79fd60cdff3409e04d2fd6"
+  },
+  "threshold_seconds": 190.4161378997378,
+  "population_seconds": 295.87376610015053,
+  "total_seconds": 490.79964690003544
+}

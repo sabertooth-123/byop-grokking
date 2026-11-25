@@ -146,3 +146,54 @@ All 170 trials crossed both thresholds. All 17 unit tests passed in 48.50 s. All
 | [Initialization](results/initialization/verification.json) | 70 | 103.19 s | 58.48 s | ν² = 1,000, (771, 57,431) |
 
 Each process used one OpenBLAS thread. Sample-size validation finished before the dimension and initialization sweeps started. Those latter two jobs ran concurrently, so their elapsed times overlap. Test crossings describe MSE on a fixed finite held-out set per trial. The SDs describe variation across the released data and teacher seeds with fixed student seed.
+
+## Milestone 3 · Robustness of the crossing-time measurement
+
+These additional experiments keep the Section 5.1 default ridge problem, step size, penalty, initialization distribution and 3,000,000-update budget. The endpoints are the first integer updates with unregularized MSE ≤ ε, including update zero. Each condition replays the same deterministic trajectory for a given trial using the validated Milestone 2A solver. [Evaluation code](robustness.py) · [Run configuration and timings](results/robustness/run.json)
+
+**Independent trials and pairing.** There are 20 independent trial seeds, compared with ten per setting in Figure 2. For zero-based trial *j*, the seeds are 1000*j*, 1000*j* + 1 and 1000*j* + 100 for the teacher, training data and student. Varying the student seed samples initialization variability across trials. Trial 1 reproduces the original baseline seeds. Conditions share all three seeds within each trial. The default test set uses 1000*j* + 2.
+
+- **A · Threshold sensitivity.** Apply ε ∈ {0.005, 0.01, 0.02, 0.05} to the same training and 2,000-example held-out sets within each trial. Record t₁, t₂ and t₂ − t₁. [Trial records](results/robustness/threshold_trials.csv) · [Statistics](results/robustness/threshold_summary.csv) · [Plot](results/robustness/threshold_sensitivity.png)
+- **B · Finite test versus population.** Fix ε = 0.01. For Gaussian inputs with covariance I/m, the exact squared prediction error is ‖w − θ*‖²/m. The solver measures it by scoring the identity matrix against θ*, which yields this MSE at every weight vector. Independently sampled Gaussian test sets of sizes 100, 500, 2,000 and 10,000 use seed offsets 3, 4, 2 and 5 respectively. Each stays fixed across updates. The 2,000-example observation is reused from A. The population row has `test_size=NA` and no test seed. Each finite row contains the signed and absolute differences from its own population crossing. Because t₁ is shared, the signed difference in t₂ equals the difference in measured grokking delay. [Paired trial records](results/robustness/population_trials.csv) · [Statistics](results/robustness/population_summary.csv) · [Plot](results/robustness/finite_vs_population.png)
+
+**Uncertainty.** The tables give arithmetic means, medians and sample SDs (divisor 19). They also give pointwise 95% percentile bootstrap intervals for both means and medians. Resampling uses 20,000 draws of 20 complete trial IDs with replacement, with NumPy seed 3102026 and identical draws across conditions. Paired differences are formed before resampling. Plot intervals are for the mean. These intervals quantify sampling uncertainty across the specified trial population. They provide neither simultaneous coverage of the grid nor prediction intervals for an individual run.
+
+An endpoint missing at the cap is recorded as `unobserved`. Dependent delays and differences inherit that status. Summary rows give observed and unobserved counts. If any observation for a metric is censored, its unrestricted moments and intervals are reported as NaN. This avoids substituting the cap or conditioning silently on successful trials.
+
+**Why test size matters.** At a fixed update, conditional on the training trajectory, each independent Gaussian test residual has mean zero and variance equal to the population MSE. For positive population MSE, the ratio of finite to population MSE has distribution χ²(N)/N, where N is the test-set size. Its relative standard deviation falls from 14.1% at N = 100 to 1.41% at N = 10,000. A finite set that underestimates loss near ε can cross early, and one that overestimates it can cross late. Reusing the set over time correlates successive estimates. The fixed-update distribution therefore explains a source of timing variability without specifying the distribution of the first crossing itself.
+
+**Reproduction.** From the environment described under Milestone 1, run these commands in PowerShell. The first command invoking Python runs the original numerical tests along with the new evaluation tests. The last command replays trial 1 without acceleration, measuring population loss directly from the weights.
+
+```powershell
+$env:OPENBLAS_NUM_THREADS = '1'
+$env:MPLBACKEND = 'Agg'
+.\.venv\Scripts\python.exe -m unittest -v test_baseline test_weight_decay test_figure2bcd test_robustness
+.\.venv\Scripts\python.exe robustness.py
+.\.venv\Scripts\python.exe verify_robustness.py
+```
+
+### Robustness results
+
+All 20 trials crossed both thresholds in every condition. Tightening ε from 0.05 to 0.005 increased mean training-crossing time by 153 updates and mean test-crossing time by 12,413 updates. Delayed generalization was observed throughout this threshold range, but its measured duration depended strongly on ε.
+
+| ε | Mean t₁ | Mean t₂ | Mean delay | Median delay | Delay SD | 95% CI for mean delay |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 0.005 | 306.6 | 26,860.3 | 26,553.7 | 26,504.0 | 348.0 | [26,408.5, 26,703.8] |
+| 0.010 | 257.8 | 22,875.6 | 22,617.8 | 22,565.5 | 326.7 | [22,479.9, 22,756.8] |
+| 0.020 | 211.3 | 19,168.9 | 18,957.6 | 18,927.0 | 318.5 | [18,822.9, 19,092.4] |
+| 0.050 | 153.9 | 14,447.8 | 14,293.9 | 14,285.5 | 315.7 | [14,160.7, 14,426.9] |
+
+At ε = 0.01, the exact population mean t₂ was 22,931.4 updates (95% CI [22,822.3, 23,032.2]). The exact population mean delay was 22,673.6. The largest finite test set had a smaller mean absolute timing error than the smallest one. Positive signed differences indicate later finite-test crossings.
+
+| Test examples | Mean finite t₂ | Mean paired difference | SD of paired differences | Mean absolute difference (95% CI) |
+| ---: | ---: | ---: | ---: | ---: |
+| 100 | 22,850.4 | −81.1 | 781.1 | 624.9 [430.8, 820.2] |
+| 500 | 23,073.5 | +142.1 | 228.0 | 205.1 [136.1, 280.0] |
+| 2,000 | 22,875.6 | −55.8 | 236.4 | 182.6 [118.4, 250.7] |
+| 10,000 | 22,962.4 | +31.0 | 80.3 | 71.2 [52.6, 91.5] |
+
+The signed differences varied in direction across sizes. For N = 500, the pointwise interval for the mean signed difference was [+46.3, +241.4] updates. The other three signed intervals included zero. There is one independent test draw of each size per trajectory, with 20 trajectories overall. This supports a descriptive comparison of timing error under the baseline Gaussian model. The data provide limited precision for small biases and comparisons between adjacent sizes.
+
+The evaluation took 490.8 s with one OpenBLAS thread, including 190.4 s for A (including shared trajectory setup) and 295.9 s for B (reusing the shared 2,000-example result). The balance covers aggregation and output generation. The 22 tests passed in 104.6 s, with some overlap with the evaluation run.
+
+A separate 26.0 s replay of 26,690 literal updates matched every training and test crossing for the four thresholds in trial 1. At ε = 0.01 the weight-norm calculation crossed at 23,159 updates, versus 22,627 for 100 test examples and 22,769 for 2,000. All three matched the accelerated measurements exactly. [Literal verification](results/robustness/verification.json)
