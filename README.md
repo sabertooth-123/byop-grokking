@@ -20,21 +20,34 @@ For training matrix X, labels y, weights w and residual r = Xw − y, the object
 
 ## Comparison and scope
 
-The verifier regenerated the splits with the official generator and executed the official ridge tracker using the saved run configuration. Both input matrices and label vectors matched exactly. Across 22,770 recorded steps the maximum absolute differences in train MSE, test MSE and final weight coordinates were all zero on this machine. Four unit tests cover the seeded construction, the gradient by central finite differences, both coordinate trajectories on a solvable ridge problem, and equality at the step-zero threshold. [Reference comparison](results/comparison.json) · [Numerical tests](test_baseline.py)
+The verifier regenerates the splits with the official generator and executes the official ridge tracker using the configuration in `results/run.json`. That tracker fixes the student seed at 100 and variance at 1.0. The verifier rejects a saved run with any other initialization before loading the reference. It checks both splits, both thresholds, every per-update loss and the final weights. Across 22,770 observations, the maximum absolute differences in training MSE, test MSE and final weight coordinates were all zero on this machine. [Reference comparison](results/comparison.json)
+
+The eight tests include two complete, independently initialized runs of the default configuration. They check exact repeatability of the trajectories and weights, both threshold times, the gradient by finite differences, the seeded generator, a solvable ridge recurrence, step-zero equality, expiry at the update cap, and the reference initialization guard. For the noiseless teacher and input covariance I/m, the exact population MSE is ‖w − θ*‖²/m. A test checks it against an exact second-moment calculation using signed coordinate vectors. The experiment still uses held-out MSE for its test curve and stopping rule. [Tests](test_baseline.py)
 
 Section 5.1 Figure 2 summarizes crossings over hyperparameter sweeps. This curve uses its default parameter tuple and the starting seeds from the sweep driver. The official driver runs ten trials per setting and advances the data and teacher seeds. This milestone covers one initial trajectory. Its test loss is a finite-sample estimate of population MSE. The reference tracker can take one extra unrecorded update if the step cap is exhausted. The independent tracker returns the weights at its last observation. Both runs stopped at the test crossing, well before the cap.
 
 ## Reproduction
 
-From this directory, run the following PowerShell commands using Python 3.12.3. The experiment and unit tests run independently of the official checkout. For the final comparison, the included reference directory contains commit `4b01ed1d878a37a36b7872e6cbd2beabb8b23cce`. To restore it in a fresh workspace, clone the official repository into `reference` and check out that commit.
+From the project root, use Git and Python 3.12.3. In PowerShell, create an environment, install the recorded versions, and prepare the reference checkout once per clone.
 
 ```powershell
-python -m pip install -r requirements.txt
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe setup_reference.py
+```
+
+Setup clones the authors' GitHub repository into the ignored `reference/` directory at `4b01ed1d878a37a36b7872e6cbd2beabb8b23cce`. Later invocations verify the existing revision and tracked files offline. If setup reports a conflicting checkout, move it aside to preserve local work and rerun setup. [Setup script](setup_reference.py)
+
+Run the complete validation from the same directory. The unit tests and baseline run independently of the reference checkout.
+
+```powershell
 $env:OPENBLAS_NUM_THREADS = '1'
 $env:MPLBACKEND = 'Agg'
-python -m unittest -v test_baseline
-python run_baseline.py
-python compare_reference.py
+.\.venv\Scripts\python.exe -m unittest -v test_baseline
+.\.venv\Scripts\python.exe run_baseline.py
+.\.venv\Scripts\python.exe compare_reference.py
 ```
+
+Expected results are eight passing tests, crossings at 232 and 22,769, and 22,770 observations. The comparison requires exact threshold agreement and checks losses and final weights with relative tolerance 1e-12 and absolute tolerance 1e-14. The measured maximum differences are printed and saved in `results/comparison.json`.
 
 The runner writes the per-update CSV, figure, teacher and student weights, and a snapshot of the configuration and software environment. A single BLAS thread was used for both implementations. Last-bit differences are possible with different numerical libraries or hardware. [Run metadata](results/run.json) · [Weight arrays](results/weights.npz)

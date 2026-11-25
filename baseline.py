@@ -48,6 +48,12 @@ def gradient(features, residual, weights, decay):
     return (features.T @ residual) / len(residual) + decay * weights
 
 
+def population_mse(weights, teacher):
+    """Expected squared prediction error under input covariance I / dimension."""
+    difference = weights - teacher
+    return (difference @ difference) / difference.size
+
+
 def fit(c, train, test, initial):
     weights = initial.copy()
     x, y = train

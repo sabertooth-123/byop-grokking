@@ -5,13 +5,24 @@ import sys
 
 import numpy as np
 from baseline import Config, ROOT, make_problem
+from setup_reference import REFERENCE, REVISION, verify_checkout
 
-REFERENCE = ROOT / "reference"
-REVISION = "4b01ed1d878a37a36b7872e6cbd2beabb8b23cce"
 SCRIPT_BLOB = "1fc000535b8aa649c4a0213a73c5397f9966dcbf"
 
 
+def validate_initialization(c):
+    if c.student_seed != 100 or c.student_variance != 1.0:
+        raise ValueError("Official ridge_gd_with_tracking requires student_seed=100 and "
+                         f"student_variance=1.0. Saved run uses student_seed={c.student_seed}, "
+                         f"student_variance={c.student_variance}.")
+
+
 def main():
+    out = ROOT / "results"
+    run = json.loads((out / "run.json").read_text())
+    c = Config(**run["config"])
+    validate_initialization(c)
+    verify_checkout(REFERENCE)
     source = (REFERENCE / "ridge_regression.py").read_bytes().replace(b"\r\n", b"\n")
     blob = hashlib.sha1(f"blob {len(source)}\0".encode() + source).hexdigest()
     if blob != SCRIPT_BLOB:
@@ -19,9 +30,6 @@ def main():
     sys.path.insert(0, str(REFERENCE))
     from ridge_regression import generate_linear_data, ridge_gd_with_tracking
 
-    out = ROOT / "results"
-    run = json.loads((out / "run.json").read_text())
-    c = Config(**run["config"])
     independent_teacher, train, test, _ = make_problem(c)
     teacher = np.random.default_rng(c.teacher_seed).normal(0, 1, c.dimension)
     teacher /= np.linalg.norm(teacher)
