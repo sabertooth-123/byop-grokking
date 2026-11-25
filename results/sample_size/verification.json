@@ -1,0 +1,22 @@
+{
+  "reference_commit": "4b01ed1d878a37a36b7872e6cbd2beabb8b23cce",
+  "verifier_sha256": "0fa5c42d4b67c3347db1d01536f85c39ef92a1fabffb94af08b0791920ddb545",
+  "trials_checked": 50,
+  "neighbor_checks": 200,
+  "minimum_observed_margin": 1.9115734687866204e-08,
+  "max_abs_errors": {
+    "lambda_min_positive": 2.7200464103316335e-15,
+    "t1_upper": 2.319211489520967e-11,
+    "t2_lower": 0.0
+  },
+  "literal_checks": [
+    {
+      "value": 20,
+      "trial": 1,
+      "t1": 44,
+      "t2": 23238,
+      "seconds": 31.976863100077026
+    }
+  ],
+  "seconds": 37.930537700071
+}

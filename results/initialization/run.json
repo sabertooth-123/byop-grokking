@@ -1,0 +1,46 @@
+{
+  "panel": "initialization",
+  "base_config": {
+    "n_train": 100,
+    "n_test": 2000,
+    "dimension": 1000,
+    "teacher_seed": 0,
+    "train_seed": 1,
+    "test_seed": 2,
+    "student_seed": 100,
+    "student_variance": 1.0,
+    "step_size": 1.0,
+    "weight_decay": 0.0001,
+    "epsilon": 0.01,
+    "max_steps": 3000000
+  },
+  "field": "student_variance",
+  "grid": [
+    1,
+    10,
+    100,
+    1000,
+    10000,
+    100000,
+    1000000
+  ],
+  "trials_per_value": 10,
+  "data_seed_stride": 1000,
+  "ddof": 0,
+  "prefix": 2048,
+  "eigenvalue_cutoff": 1e-12,
+  "reference_commit": "4b01ed1d878a37a36b7872e6cbd2beabb8b23cce",
+  "project_head": "c0e88e1a51c9b3eb8640fdce37471f760e0ab685",
+  "source_sha256": {
+    "figure2bcd.py": "bc6c610655053ae5c430e5f60929b44378f9e012506a9f0b5b1a978ac4fc4da2",
+    "baseline.py": "cd7cd5ea604b124e571992d81a9b03078cb1f50e4ab1702b9d562aa2e36647be",
+    "weight_decay.py": "aeba90613156838601177f6c28c4f927d81708f55bdfb6355cdffb3190f35627",
+    "setup_reference.py": "f44a66f7b8bd1267b2671b627d1cd763984becda7150ab805e0dfb77a9ee6347"
+  },
+  "python": "3.12.3",
+  "numpy": "2.4.4",
+  "matplotlib": "3.10.8",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "openblas_num_threads": "1",
+  "wall_seconds": 103.19321860000491
+}

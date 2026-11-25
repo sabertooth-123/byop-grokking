@@ -91,3 +91,58 @@ $env:MPLBACKEND = 'Agg'
 The verifier compares all per-trial theoretical bounds with the official functions. An independent eigendecomposition of XXᵀ checks the empirical MSE immediately before and at both reported crossings for every trial. The verifier also runs the complete official GD tracker on the first trial at the largest decay. To evaluate all 50 trials with literal GD, run `python weight_decay.py --literal`. That writes to `results/weight_decay_literal/` and requires substantially more time and memory for the loss histories. [Run configuration and timing](results/weight_decay/run.json) · [Verification](results/weight_decay/verification.json)
 
 All 12 tests passed. Both bounds matched the official functions exactly for all 50 trials. All 200 crossing-neighbor checks agreed, with the closest MSE approximately 7.88 × 10⁻¹¹ from the threshold. The full official trial returned t₁ = 263, t₂ = 72,884 and delay = 72,621, matching the saved trial exactly. Verification took 79.17 seconds, including 73.19 seconds for that literal trial.
+
+## Milestone 2B · Sample size, feature dimension and initialization
+
+Each panel starts a fresh sequence of ten trials per setting. For zero-based trial index *j* across that panel, the teacher, training and test seeds are 1000*j*, 1000*j* + 1 and 1000*j* + 2. The student seed is 100 throughout. The sweeps use λ = 0.0001, η = 1, ε = 0.01, 2,000 held-out examples and a cap of 3,000,000 updates. The default training size, feature dimension and student variance are 100, 1,000 and 1 respectively. The sample-size panel uses base-2 log axes. Dimension uses a linear horizontal axis and base-2 vertical axis. Initialization uses a base-10 horizontal axis and linear vertical axis. [Paper, Section 5.1](https://arxiv.org/html/2601.19791v4#S5.SS1) · [Official driver](https://github.com/raymondmyxu/to-grok-grokking/blob/4b01ed1d878a37a36b7872e6cbd2beabb8b23cce/ridge_regression.py)
+
+| Panel | Grid | Plot | Individual trials | Means, SDs and counts |
+| --- | --- | --- | --- | --- |
+| Training sample size | 10, 20, 40, 80, 160 | [Figure 2B](results/sample_size/figure2b.png) | [CSV](results/sample_size/trials.csv) | [CSV](results/sample_size/summary.csv) |
+| Feature dimension | 1000, 1500, 2000, 2500, 3000 | [Figure 2C](results/feature_dimension/figure2c.png) | [CSV](results/feature_dimension/trials.csv) | [CSV](results/feature_dimension/summary.csv) |
+| Initialization variance | 1, 10, 100, 1000, 10000, 100000, 1000000 | [Figure 2D](results/initialization/figure2d.png) | [CSV](results/initialization/trials.csv) | [CSV](results/initialization/summary.csv) |
+
+The runner reuses the Milestone 1 generator and Milestone 2A discrete GD solver. Each trial records its two first threshold crossings, their paired difference, and its theoretical bounds. A crossing missing at the cap is recorded as `unobserved`, as is a delay with either crossing missing. Each summary gives the observed count. A partial group yields NaN for the affected mean and SD, matching the released use of ordinary NumPy mean and variance on arrays containing NaN. Error bars are one SD across the ten trials, with divisor ten. [Runner](figure2bcd.py)
+
+**Initialization convention.** For variance *v* = ν², the released driver samples each initial weight with SD √*v*. It also passes √*v* as the `nu_square` argument of the **training** upper-bound function. Equation 8 uses *v* in that logarithm. Figure 2D and the `t1_upper` columns use the released call. The separate `t1_upper_variance` columns evaluate the same function on the same training matrix with *v*. The test lower bound takes *v* in both cases. These two upper bounds share the same measured trajectories. [Released upper-bound call](https://github.com/raymondmyxu/to-grok-grokking/blob/4b01ed1d878a37a36b7872e6cbd2beabb8b23cce/ridge_regression.py#L677-L687)
+
+### Reproduction and numerical checks
+
+Use the environment and pinned reference checkout from Milestone 1. Run these commands in PowerShell from the project root.
+
+```powershell
+$env:OPENBLAS_NUM_THREADS = '1'
+$env:MPLBACKEND = 'Agg'
+.\.venv\Scripts\python.exe setup_reference.py
+.\.venv\Scripts\python.exe -m unittest -v test_baseline test_weight_decay test_figure2bcd
+foreach ($panel in 'sample_size', 'feature_dimension', 'initialization') {
+    .\.venv\Scripts\python.exe figure2bcd.py $panel
+    if ($LASTEXITCODE -ne 0) { throw "Sweep failed for $panel" }
+    .\.venv\Scripts\python.exe verify_figure2bcd.py $panel
+    if ($LASTEXITCODE -ne 0) { throw "Validation failed for $panel" }
+}
+```
+
+Each panel directory contains a `run.json` with the base configuration, overrides, seed stride, runtime, package versions, project HEAD, SHA-256 hashes of the runner and its local dependencies, and the official commit. The hashes identify the executed working-tree sources, including the new runner. `verification.json` records the numerical checks and their runtime. The production path calls the pinned reference bound functions with the smallest positive eigenvalue above 10⁻¹² from XXᵀ. This matrix has the same positive eigenvalues as XᵀX and at most 160 rows in these sweeps.
+
+The verifier independently evaluates Equation 8 with the released m-by-m Gram eigensolver for every trial. It also evaluates held-out and training MSE from step zero using the independent discrete solution at the two adjacent updates around each crossing. One full-size trial per panel runs through the official literal GD tracker, using its scaled-initialization variant for Figure 2D. [Verification code](verify_figure2bcd.py) · [Numerical tests](test_figure2bcd.py)
+
+### Comparison with Figure 2
+
+- **Sample size.** Increasing *n* from 10 to 160 raised mean t₁ from 21.7 to 446.1 updates. Mean t₂ fell modestly, from 23,648.3 to 22,689.6. Mean delay consequently shrank from 23,626.6 to 22,243.5. This reproduces the direction of both empirical curves in the upper-right panel. [Sample-size summary](results/sample_size/summary.csv)
+- **Feature dimension.** Tripling *m* from 1,000 to 3,000 at *n* = 100 moved mean t₁ from 254.9 to 236.9 updates and mean t₂ from 23,124.4 to 22,940.7. Mean t₂ varied by about 1.3% across the whole grid, consistent with the nearly flat empirical curve in the lower-left panel. [Feature-dimension summary](results/feature_dimension/summary.csv)
+- **Initialization.** Going from variance 1 to 10⁶ raised mean t₁ from 254.9 to 1,421.3 and mean t₂ from 23,124.4 to 92,104.9. Mean t₂ rose by about 11,500 updates per decade of variance, consistent with the paper's logarithmic dependence. At 10⁶, the released mean t₁ upper bound was 2,193.0 ± 43.3 updates. Passing the variance as in Equation 8 gave 2,912.4 ± 57.5. At variance 1 both calculations gave 1,491.2. [Initialization summary](results/initialization/summary.csv)
+
+**Published training bounds.** The three arXiv v4 panel PNGs matched the pinned repository PNGs byte for byte (SHA-256). The training upper bound in the published sample-size panel reads approximately 41 and 1,520 updates at the two endpoints, whereas the released calculation gives 83.4 and 3,073.0. The feature-dimension image also puts the bound lower: at *m* = 1,000 its marker reads about 620 updates, versus 1,491.2 from the released code. The image estimates use the blue dashed marker centers and the labeled log-axis grid. The released arrays underlying those images are unavailable, so the cause of the offset remains unresolved. The initialization argument mismatch cannot explain these two panels because their variance is 1. [Published sample-size panel](https://arxiv.org/html/2601.19791v4/plots/ridge_sample_size.png) · [Published dimension panel](https://arxiv.org/html/2601.19791v4/plots/ridge_width.png) · [Published initialization panel](https://arxiv.org/html/2601.19791v4/plots/ridge_initialization.png)
+
+### Validation results and wall time
+
+All 170 trials crossed both thresholds. All 17 unit tests passed in 48.50 s. All 680 independent checks of MSE before and at the reported crossings passed. The largest absolute difference in training upper bounds using the two Gram calculations was 2.32 × 10⁻¹¹ updates. All test lower bounds agreed exactly. Direct GD matched both integer crossing times for each full-size representative below.
+
+| Panel | Trials | Sweep | Verification | Official literal trial 1, (t₁, t₂) |
+| --- | ---: | ---: | ---: | --- |
+| [Sample size](results/sample_size/verification.json) | 50 | 54.50 s | 37.93 s | *n* = 20, (44, 23,238) |
+| [Feature dimension](results/feature_dimension/verification.json) | 50 | 231.39 s | 149.50 s | *m* = 1,500, (275, 22,849) |
+| [Initialization](results/initialization/verification.json) | 70 | 103.19 s | 58.48 s | ν² = 1,000, (771, 57,431) |
+
+Each process used one OpenBLAS thread. Sample-size validation finished before the dimension and initialization sweeps started. Those latter two jobs ran concurrently, so their elapsed times overlap. Test crossings describe MSE on a fixed finite held-out set per trial. The SDs describe variation across the released data and teacher seeds with fixed student seed.
