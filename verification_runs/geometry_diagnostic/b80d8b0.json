@@ -1,0 +1,85 @@
+{
+  "checks": [
+    {
+      "trial": 1,
+      "rho": 0.0,
+      "teacher": "random",
+      "t1": 232,
+      "t_pop": 23159,
+      "t_iso": 23159,
+      "steps": 30000,
+      "max_abs_loss_error": 3.8191672047105385e-14
+    },
+    {
+      "trial": 20,
+      "rho": 0.85,
+      "teacher": "random",
+      "t1": 867,
+      "t_pop": 13183,
+      "t_iso": 23155,
+      "steps": 30000,
+      "max_abs_loss_error": 3.602673714908633e-14
+    },
+    {
+      "trial": 2,
+      "rho": 0.3,
+      "teacher": "parallel",
+      "t1": 311,
+      "t_pop": 21051,
+      "t_iso": 22742,
+      "steps": 30000,
+      "max_abs_loss_error": 3.824718319833664e-14
+    },
+    {
+      "trial": 2,
+      "rho": 0.3,
+      "teacher": "orthogonal",
+      "t1": 311,
+      "t_pop": 21267,
+      "t_iso": 23193,
+      "steps": 30000,
+      "max_abs_loss_error": 3.835820550079916e-14
+    },
+    {
+      "trial": 6,
+      "rho": 0.85,
+      "teacher": "parallel",
+      "t1": 971,
+      "t_pop": 13526,
+      "t_iso": 22875,
+      "steps": 30000,
+      "max_abs_loss_error": 3.930189507173054e-14
+    },
+    {
+      "trial": 6,
+      "rho": 0.85,
+      "teacher": "orthogonal",
+      "t1": 971,
+      "t_pop": 13573,
+      "t_iso": 23387,
+      "steps": 30000,
+      "max_abs_loss_error": 3.9246383920499284e-14
+    }
+  ],
+  "seconds": 5.785735500045121,
+  "verification_execution": {
+    "project_head": "b80d8b0691d2ad79652ab0b2727c1aa9dc7b0100",
+    "working_tree_source_changes": [],
+    "source_sha256": {
+      "baseline.json": "20ce1221b2764497c2e340b026e079a1e2a8f7d16c79fd60cdff3409e04d2fd6",
+      "baseline.py": "cd7cd5ea604b124e571992d81a9b03078cb1f50e4ab1702b9d562aa2e36647be",
+      "feature_correlation.py": "7eb7ef4c6bf6c90e3444cbe303c1ce0f46d6fb086e1b85e5f8f1d54b8251f9bd",
+      "geometry_diagnostic.py": "9303d82b44a717bf94a94a2a8aa7eafe95f9c7063a648d63a80d0883fb3c7735",
+      "provenance.py": "785d786c452c0e5c4cf3da7357d1ea1f7f050ef4f15f6de9a0066b92f6eec521",
+      "requirements.txt": "1e724a6218e129f3e99ca4490f7e4a58777eacd297b15c82c9d237fa00fe7941",
+      "robustness.py": "fbf822e60eaf933b1e8f61a658f32dc7376af8142704c33890fdef67009164f6",
+      "setup_reference.py": "f44a66f7b8bd1267b2671b627d1cd763984becda7150ab805e0dfb77a9ee6347",
+      "verify_geometry_diagnostic.py": "a196066ed6ce5e4b5da3d7d3a66921eb57ca8ac20d02d019bab15a00e98baccc",
+      "weight_decay.py": "8ed45a296b79d8608e687957cb1c42e4bdddea7d2b12c494b5044a87dd0b4fe8"
+    },
+    "authors_reference_pin": "4b01ed1d878a37a36b7872e6cbd2beabb8b23cce",
+    "python": "3.12.3",
+    "numpy": "2.4.4",
+    "matplotlib": "3.10.8"
+  }
+}
