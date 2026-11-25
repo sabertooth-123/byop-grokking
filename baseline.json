@@ -1,0 +1,14 @@
+{
+  "n_train": 100,
+  "n_test": 2000,
+  "dimension": 1000,
+  "teacher_seed": 0,
+  "train_seed": 1,
+  "test_seed": 2,
+  "student_seed": 100,
+  "student_variance": 1.0,
+  "step_size": 1.0,
+  "weight_decay": 0.0001,
+  "epsilon": 0.01,
+  "max_steps": 3000000
+}

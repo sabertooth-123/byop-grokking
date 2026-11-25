@@ -1,0 +1,12 @@
+{
+  "reference_commit": "4b01ed1d878a37a36b7872e6cbd2beabb8b23cce",
+  "script_git_blob": "1fc000535b8aa649c4a0213a73c5397f9966dcbf",
+  "observations": 22770,
+  "reference_t1": 232,
+  "reference_t2": 22769,
+  "max_abs_train_mse_difference": 0.0,
+  "max_abs_test_mse_difference": 0.0,
+  "max_abs_final_weight_difference": 0.0,
+  "rtol": 1e-12,
+  "atol": 1e-14
+}
