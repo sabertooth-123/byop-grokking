@@ -1,0 +1,37 @@
+{
+  "base_config": {
+    "n_train": 100,
+    "n_test": 2000,
+    "dimension": 1000,
+    "teacher_seed": 0,
+    "train_seed": 1,
+    "test_seed": 2,
+    "student_seed": 100,
+    "student_variance": 1.0,
+    "step_size": 1.0,
+    "weight_decay": 0.0001,
+    "epsilon": 0.01,
+    "max_steps": 3000000
+  },
+  "weight_decays": [
+    2e-06,
+    4e-06,
+    8e-06,
+    1.6e-05,
+    3.2e-05
+  ],
+  "trials_per_decay": 10,
+  "data_seed_stride": 1000,
+  "ddof": 0,
+  "gram_eigenvalue_cutoff": 1e-12,
+  "solver": "certified interval skip with literal GD at crossings",
+  "direct_prefix": 2048,
+  "reference_commit": "4b01ed1d878a37a36b7872e6cbd2beabb8b23cce",
+  "python": "3.12.3",
+  "numpy": "2.4.4",
+  "matplotlib": "3.10.8",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+  "openblas_num_threads": "1",
+  "wall_seconds": 150.83078019996174
+}

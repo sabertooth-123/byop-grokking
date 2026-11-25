@@ -1,0 +1,18 @@
+{
+  "reference_commit": "4b01ed1d878a37a36b7872e6cbd2beabb8b23cce",
+  "bounds_checked": 50,
+  "max_abs_upper_error": 0.0,
+  "max_abs_lower_error": 0.0,
+  "crossing_neighbors_checked": 200,
+  "smallest_threshold_margin": 7.878204512368203e-11,
+  "literal_reference_trial": {
+    "weight_decay": 3.2e-05,
+    "trial": 1,
+    "teacher_seed": 40000,
+    "t1": 263,
+    "t2": 72884,
+    "delay": 72621,
+    "seconds": 73.18885770009365
+  },
+  "seconds": 79.17065920005552
+}
