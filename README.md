@@ -197,3 +197,36 @@ The signed differences varied in direction across sizes. For N = 500, the pointw
 The evaluation took 490.8 s with one OpenBLAS thread, including 190.4 s for A (including shared trajectory setup) and 295.9 s for B (reusing the shared 2,000-example result). The balance covers aggregation and output generation. The 22 tests passed in 104.6 s, with some overlap with the evaluation run.
 
 A separate 26.0 s replay of 26,690 literal updates matched every training and test crossing for the four thresholds in trial 1. At ε = 0.01 the weight-norm calculation crossed at 23,159 updates, versus 22,627 for 100 test examples and 22,769 for 2,000. All three matched the accelerated measurements exactly. [Literal verification](results/robustness/verification.json)
+
+## Milestone 4 · Feature correlation
+
+Across 20 paired seeds, stronger equicorrelation delayed training convergence to MSE 0.01 and advanced the population crossing. All 80 runs crossed both thresholds. Times are integer GD updates per trial. Intervals below are pointwise percentile bootstrap intervals for **mean within-trial differences** (20,000 draws of 20 whole trial IDs, seed 4102026). SDs use divisor 19. [Delay and paired differences](results/feature_correlation/delay.png) · [Training and population MSE histories](results/feature_correlation/losses.png)
+
+| ρ | Mean training t₁ | Mean population t₂ | Mean delay ± SD | Mean delay change from 0 (95% CI) |
+| ---: | ---: | ---: | ---: | ---: |
+| 0 | 257.8 | 22,931.4 | 22,673.6 ± 245.4 | 0 by construction |
+| 0.30 | 331.5 | 21,041.0 | 20,709.6 ± 248.9 | −1,964.1 [−1,985.8, −1,932.4] |
+| 0.60 | 482.9 | 18,097.9 | 17,615.0 ± 248.5 | −5,058.6 [−5,083.2, −5,026.9] |
+| 0.85 | 855.5 | 13,075.3 | 12,219.8 ± 251.7 | −10,453.8 [−10,491.3, −10,415.0] |
+
+**Design.** Each trial reuses its Milestone 3 teacher, student and Gaussian training draws across all four settings. Input dimension is 1,000, training size 100, step size 1 and ridge penalty 0.0001. For a baseline row z with covariance I/m, scale its projection onto u = 1/√m times the all-ones vector by √(1+(m−1)ρ) and its orthogonal projection by √(1−ρ). The resulting Gaussian rows have diagonal variance 1/m and off-diagonal covariance ρ/m. Labels use the transformed inputs and the fixed noiseless teacher. Population MSE for error d = w − θ* is (1−ρ)‖d‖²/m + ρ(uᵀd)². Raw records include both initial MSEs, seeds, spectrum and alignment. Missing crossings at 3,000,000 updates use `unobserved`; affected aggregate metrics and intervals are NaN with observation counts retained. [Trial data](results/feature_correlation/trials.csv) · [Summary](results/feature_correlation/summary.csv)
+
+**Discrete dynamics.** The runner uses the baseline generator and evaluates the exact ridge GD recurrence in the training matrix's singular basis. Each row-space coordinate's displacement from its ridge fixed point scales by (1−η(s²/n+λ)) per update. The training-null component scales by (1−ηλ). The runner evaluates both MSEs at every integer step in blocks through the first crossings, including step zero. It saves additional common checkpoints through update 30,000 for comparisons across settings. This uses the same discrete objective and initialization as the baseline. [Runner](feature_correlation.py) · [Checkpoint losses and directional components](results/feature_correlation/losses.csv)
+
+**Spectrum and interpretation.** The covariance trace stays at one. As ρ increases from 0 to 0.85, the shared-direction eigenvalue increases from 0.001 to 0.85015 and the other 999 eigenvalues decrease from 0.001 to 0.00015. The participation ratio, (tr Σ)²/tr(Σ²), falls from 1,000 to 1.38. The mean smallest positive eigenvalue of XᵀX/n falls from 0.00477 to 0.000717, consistent with slower decay of some training residuals.
+
+The population metric itself changes with ρ. At update 5,000, the mean squared Euclidean weight error was 329.48 at ρ = 0 and 329.51 at ρ = 0.85. Yet mean population MSE was 0.32948 and 0.04978, respectively. At ρ = 0.85 the shared direction contributed only 0.00035 of that loss. Once this high-variance direction was fit, the remaining errors received less weight in the population metric. This accounts for much of the earlier population crossing without requiring faster overall recovery of the teacher weights. Initial population losses also fluctuated more across seeds as variance concentrated in one direction (SD 0.050 at ρ = 0 and 0.704 at ρ = 0.85).
+
+**Teacher alignment.** For positive ρ the unique dominant axis is u. At ρ = 0 all axes have equal variance. Squared teacher cosine with u ranged from 0.000028 to 0.002831 across these randomly oriented teachers. The across-seed Pearson correlations of alignment with the paired delay change were −0.16, +0.04 and +0.25 for the three positive settings. All three bootstrap intervals included zero (at ρ = 0.85, [−0.10, 0.65]). This exploratory comparison has limited precision and very little coverage of strongly aligned teachers. It does not establish a teacher-alignment effect. [Alignment estimates for training, population and delay](results/feature_correlation/alignment.csv)
+
+**Reproduction and validation.** From the existing project environment, run the following in PowerShell. The sweep took 6.61 s and the literal comparison took 5.08 s with one OpenBLAS thread. All 20 isotropic crossing pairs matched the saved Milestone 3 population controls. For seed 1 at all four correlations, literal GD through 30,000 updates matched both first crossings exactly. Maximum absolute MSE disagreement across logged checkpoints was below 4 × 10⁻¹⁴. Independent tests check the exact covariance square root, marginal and sampled covariances, dense quadratic population loss, signed GD factors and cap handling. [Config and runtime](results/feature_correlation/run.json) · [Verification receipt](results/feature_correlation/verification.json)
+
+```powershell
+$env:OPENBLAS_NUM_THREADS = '1'
+$env:MPLBACKEND = 'Agg'
+python -m unittest -v test_feature_correlation
+python feature_correlation.py
+python verify_feature_correlation.py
+```
+
+The paired observations support an effect of positive equicorrelation on the measured delay for this threshold, scale, ridge penalty and covariance family. They do not establish a universal direction for other spectra, thresholds or teacher distributions.

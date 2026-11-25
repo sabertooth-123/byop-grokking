@@ -1,0 +1,32 @@
+{
+  "config": {
+    "n_train": 100,
+    "n_test": 2000,
+    "dimension": 1000,
+    "teacher_seed": 0,
+    "train_seed": 1,
+    "test_seed": 2,
+    "student_seed": 100,
+    "student_variance": 1.0,
+    "step_size": 1.0,
+    "weight_decay": 0.0001,
+    "epsilon": 0.01,
+    "max_steps": 3000000
+  },
+  "rhos": [
+    0.0,
+    0.3,
+    0.6,
+    0.85
+  ],
+  "trials": 20,
+  "bootstrap_seed": 4102026,
+  "resamples": 20000,
+  "seed_stride": 1000,
+  "python": "3.12.3",
+  "numpy": "2.4.4",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "openblas_threads": "1",
+  "seconds": 6.612647200003266,
+  "source_sha256": "944e5231674eb596263336830e14a671c88d208add22b47246e130911d695f6c"
+}
